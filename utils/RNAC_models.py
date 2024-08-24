@@ -334,7 +334,7 @@ def load_HTS_prediction(protein_idx:int)->np.ndarray:
     return prediction[COL_ORDER].values
 
 
-def get_big_model_HTS_to_RNAC_prediction(HTS_prediction pd.DataFrame)->np.ndarray:
+def get_big_model_HTS_to_RNAC_prediction(HTS_prediction:pd.DataFrame)->np.ndarray:
     HTS_prediction = HTS_prediction[COL_ORDER].values
     RNAC_pred = get_complex_prediction(HTS_prediction, BIG)
     return RNAC_pred
