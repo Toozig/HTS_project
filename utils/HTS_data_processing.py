@@ -2,6 +2,8 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from typing import List
+import os
+import requests
 import numpy as np
 import re
 
@@ -83,6 +85,44 @@ def process_HTS_raw_files(file_list: List[str]) -> pd.DataFrame:
     return result
 
         
+
+
+def download_and_load_rbp(protein_name):
+    url = f"https://raw.githubusercontent.com/Toozig/HTS_to_RNAC/main/data/HTS_csv_data/{protein_name}.csv"
+    local_path = f"/tmp/RBP{protein_name}.csv"
+    
+    try:
+        # Download the file
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad status codes
+        
+        # Save the file to /tmp
+        with open(local_path, 'wb') as file:
+            file.write(response.content)
+        
+        # Load the file into a pandas DataFrame
+        df = pd.read_csv(local_path, index_col=None)
+        return df
+    
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Failed to download the file: {e}")
+    
+
+
+def get_replacement_df(protein_name:str)-> pd.DataFrame:
+    """
+    Get the replacement DataFrame for the given protein name.
+    Args:
+        protein_name (str): Name of the protein (e.g. 'RBP54')
+    """
+    replacment_protein_name = IMPUTATION_DICT[protein_name]
+    replacment_data = MODEL_HTS_DATA % replacment_protein_name
+    if not os.path.exists(replacment_data):
+        print(f"Downloading {replacment_data}")
+        replacement_df = download_and_load_rbp(replacment_protein_name)
+        return replacement_df
+    replacement_df = pd.read_csv(replacment_data)
+    return replacement_df
 
 def impute_missing_cycles(protein_name:str, HTS_df: pd.DataFrame)-> pd.DataFrame:
     """
