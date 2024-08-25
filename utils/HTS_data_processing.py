@@ -90,7 +90,8 @@ def process_HTS_raw_files(file_list: List[str]) -> pd.DataFrame:
 def download_and_load_rbp(protein_name):
     url = f"https://raw.githubusercontent.com/Toozig/HTS_to_RNAC/main/data/HTS_csv_data/{protein_name}.csv"
     local_path = f"/tmp/RBP{protein_name}.csv"
-    
+    if os.path.exists(local_path):
+        return pd.read_csv(local_path)
     try:
         # Download the file
         response = requests.get(url)

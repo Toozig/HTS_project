@@ -6,3 +6,4 @@ keras
 scikit-learn==1.4.0
 joblib
 tensorflow-probability[tf]
+pyarrow
