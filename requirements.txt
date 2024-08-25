@@ -3,5 +3,6 @@ pandas
 xgboost
 tensorflow
 keras
-scikit-learn
+scikit-learn==1.4.0
 joblib
+tensorflow-probability[tf]
