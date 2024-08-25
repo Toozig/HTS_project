@@ -31,20 +31,10 @@ MSE = 'mse'
 MOTIF_LEN = 6
 N_MOTIF = 124
 L_RATE = 0.0066
-
-
-
-
-
-
 # train variables
 EPOCHS = 24
-# original is 256 but it is too slow (RBP1 got Test Loss: 0.07756771147251129,
-#                       Test Metric (Pearson Correlation): 0.6312665343284607) 0.07849756628274918, Test Metric (Pearson Correlation): 0.6251803040504456
 BATCH_SIZE = 256
-# Test Loss: 0.07811325043439865,
-#  Test Metric (Pearson Correlation): 0.62741619348526
-# BATCH_SIZE = 512
+
 
 
 
@@ -67,8 +57,6 @@ def pearson_correlation(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
     correlation = tfp.stats.correlation(y_true, y_pred, sample_axis=0, event_axis=-1)
     
     return correlation
-
-
 
 
 def build_model(expirement_id: str, input_shape: Tuple[int, ...], compile: bool = True) -> Sequential:

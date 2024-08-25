@@ -1,38 +1,24 @@
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, Activation, Add, Concatenate, Input, Layer
-from tensorflow.keras.models import Model, Sequential, save_model, load_model
+from tensorflow.keras.models import Model, save_model, load_model
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.callbacks import EarlyStopping
 import joblib
 import tensorflow as tf
-from xgboost import XGBRegressor
-import joblib
 import keras
 import pickle
 import os
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 import pandas as pd
 
 HTS_TO_RNAC_COLS = ['small_model', 'xgboost_model', 'big_model']
-
-
 COL_ORDER =['test_score', 'RBP1', 'RBP2', 'RBP3', 'RBP4', 'RBP5', 'RBP6', 'RBP7', 'RBP8', 'RBP9', 'RBP10', 'RBP11', 'RBP12', 'RBP13', 'RBP14', 'RBP15', 'RBP16', 'RBP17', 'RBP18', 'RBP19', 'RBP20', 'RBP21', 'RBP22', 'RBP23', 'RBP24', 'RBP25', 'RBP26', 'RBP27', 'RBP28', 'RBP29', 'RBP30', 'RBP31', 'RBP32', 'RBP33', 'RBP34', 'RBP35', 'RBP36', 'RBP37', 'RBP38']
-
-XGB_HTS_TO_RNAC_PATH = 'data/models/xgboost_model.json'
 COMPLEX_BIG_MODEL_PATH = 'data/models/hts_to_rnac_complex_modelV2.keras'
-SMALL_MODEL_PATH = 'data/models/assertion_complexmodel.keras'
 COMPLEX_BIG_MODEL_SCALER_PATH = 'data/models/HTS_to_RNAC_scaler.pkl'
-COMPLEX_SMALL_MODEL_SCALER_PATH = 'data/models/assertion_complexmodel_scaler.pkl'
-RNAC_TO_RNAC_SCALER_PATH = 'data/models/rnac_to_rnac_scaler.pkl'
-RNAC_TO_RNAC_COL_ORDER = ['small_model', 'xgboost_model', 'big_model']
-RNAC_TO_RNAC_MODEL_PATH = 'data/models/rnac_to_rnac_model.keras'
 BIG = 'big'
-SMALL = 'small'
 BIG_MODEL = 'big_model'
 
 
@@ -113,7 +99,6 @@ class MultiplyBySavedNumber(Layer):
         config['saved_number_layer'] = keras.saving.deserialize_keras_object(config['saved_number_layer'])
         return cls(**config)
     
-
 def build_complex_rnac_model(experiment_id, input_shape, compile=True):
     inputs = Input(shape=input_shape)
     
@@ -166,7 +151,6 @@ def build_complex_rnac_model(experiment_id, input_shape, compile=True):
     
     return model
 
-
 def load_complex_model(model_path: str)-> Model:
     custom_objects = {
     'SaveFirstNumber': SaveFirstNumber,
@@ -175,45 +159,10 @@ def load_complex_model(model_path: str)-> Model:
     model = load_model(model_path, custom_objects=custom_objects)
     return model
 
-
 def load_HTS_to_RNAC_scaler(path) -> StandardScaler:
     with open(path, 'rb') as f:
         scaler = pickle.load(f)
     return scaler
-
-
-def load_xgboost_model(model_path):
-    model = XGBRegressor()
-    model.load_model(model_path)
-    return model
-
-def get_xgboost_prediction(X: np.ndarray) -> np.ndarray:
-    xgb_model = load_xgboost_model(XGB_HTS_TO_RNAC_PATH)
-    scaler = load_HTS_to_RNAC_scaler(COMPLEX_SMALL_MODEL_SCALER_PATH) # using the small model scaler
-    X_scaled = scaler.transform(X)
-    predictions = xgb_model.predict(X_scaled)
-    return predictions[..., np.newaxis]
-
-
-
-def get_complex_prediction(X: np.ndarray, size:str)-> np.ndarray:
-    model_path = COMPLEX_BIG_MODEL_PATH if size == BIG else SMALL_MODEL_PATH
-    scaler_path = COMPLEX_BIG_MODEL_SCALER_PATH if size == BIG else COMPLEX_SMALL_MODEL_SCALER_PATH
-    model = load_complex_model(model_path)
-    scaler = load_HTS_to_RNAC_scaler(scaler_path)
-    X_scaled = scaler.transform(X)
-    predictions = model.predict(X_scaled)
-    return predictions
-
-
-
-def get_HTS_to_RNAC_prediction(X: np.ndarray)-> np.ndarray:
-    xgb_predictions = get_xgboost_prediction(X)
-    small_model_predictions = get_complex_prediction(X, SMALL)
-    big_model_predictions = get_complex_prediction(X, BIG)
-    predictions = np.concatenate([small_model_predictions, xgb_predictions, big_model_predictions], axis=1)
-    return predictions
-
 
 ### TRAIN RNAC TO RNAC MODEL ###
 
@@ -269,51 +218,6 @@ def train_complex_model(model_id,X,y, X_test, y_test, save_dir):
     history_file = f'{save_dir}/{model_id}_history.json'
     return model, history
 
-
-
-def get_RNAC_to_RNAC_prediction(X: np.ndarray)-> np.ndarray:
-    custom_objects = { 'pearson_correlation_loss': pearson_correlation_loss }
-    model = load_model(RNAC_TO_RNAC_MODEL_PATH, custom_objects=custom_objects)
-    scaled_data = scale_samples(X)
-    predictions = model.predict(scaled_data)
-    return predictions
-
-
-
-    ### RNAC TO RNAC SCALER ####
-
-
-
-
-def scale_samples(samples):
-    """
-    Scales the input samples using MinMaxScaler.
-
-    Parameters:
-    samples (numpy.ndarray): The input samples of shape (n_samples, n_features, n_channels).
-
-    Returns:
-    numpy.ndarray: The scaled samples with the same shape as the input.
-    """
-    # Get the shape of the input samples
-    n_samples, n_features, n_channels = samples.shape
-    
-    # Reshape the data to 2D
-    samples_reshaped = samples.reshape(-1, n_channels)
-    
-    # Initialize the scaler
-    scaler = joblib.load(RNAC_TO_RNAC_SCALER_PATH)
-    
-    # Fit and transform the data
-    samples_scaled = scaler.fit_transform(samples_reshaped)
-    
-    # Reshape back to the original shape
-    samples_scaled = samples_scaled.reshape(n_samples, n_features, n_channels)
-    
-    return samples_scaled
-
-
-
 def save_RNAC_preds(prediction: np.ndarray, protein_idx:int):
     saving_dir = 'data/final/RNAC_3_model_predictions'
     os.makedirs(saving_dir, exist_ok=True)
@@ -327,31 +231,16 @@ def save_RNAC_final_results(prediction: np.ndarray, protein_idx:int):
         # write only numbers, one in each line
         f.write('\n'.join(prediction.flatten().astype(str)))
  
-
 def load_HTS_prediction(protein_idx:int)->np.ndarray:
     prediction_path = f'data/final/train_predictions/RBP{protein_idx}.csv'
     prediction = pd.read_csv(prediction_path, index_col=0)
     return prediction[COL_ORDER].values
 
-
-def get_big_model_HTS_to_RNAC_prediction(HTS_prediction:pd.DataFrame)->np.ndarray:
+def get_HTS_to_RNAC_prediction(HTS_prediction:pd.DataFrame)->np.ndarray:
     HTS_prediction = HTS_prediction[COL_ORDER].values
-    RNAC_pred = get_complex_prediction(HTS_prediction, BIG)
-    return RNAC_pred
+    model = load_complex_model(COMPLEX_BIG_MODEL_PATH)
+    scaler = load_HTS_to_RNAC_scaler(COMPLEX_BIG_MODEL_SCALER_PATH)
+    X_scaled = scaler.transform(HTS_prediction)
+    predictions = model.predict(X_scaled)
+    return predictions
     
-
-
-def get_full_HTS_to_RNAC_prediction(HTS_prediction:pd.DataFrame)->np.ndarray:
-    HTS_prediction =  HTS_prediction[COL_ORDER].values
-    RNAC_pred = get_HTS_to_RNAC_prediction(HTS_prediction)
-    final_pred = get_RNAC_to_RNAC_prediction(RNAC_pred[np.newaxis,...])
-    return final_pred
-
-
-
-def main():
-    for prot_idx in range(1, 39):
-        print(f'Processing RBP{prot_idx}')
-        get_full_HTS_to_RNAC_prediction(prot_idx)
-    print('All predictions saved successfully')
-
