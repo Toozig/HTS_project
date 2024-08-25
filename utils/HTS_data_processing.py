@@ -135,9 +135,7 @@ def impute_missing_cycles(protein_name:str, HTS_df: pd.DataFrame)-> pd.DataFrame
         HTS_df (pd.DataFrame) : DF contain
 
     """
-    replacment_protein_name = IMPUTATION_DICT[protein_name]
-    replacment_data = MODEL_HTS_DATA % replacment_protein_name
-    replacement_df = pd.read_csv(replacment_data)
+    replacement_df = get_replacement_df(protein_name)
     # replace cycle 4 data with cycle 4 data from the model with high corrolation
     replacement_df = replacement_df[replacement_df.cycle != 4]
     new_data = pd.concat([HTS_df, replacement_df]).reset_index(drop=True)

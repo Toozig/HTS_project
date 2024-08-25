@@ -20,6 +20,7 @@ These results indicate a strong predictive capability of our model, demonstratin
 
 - Python 3.x
 - Required Python packages (listed in `requirements.txt`)
+- `wget` (for downloading files from the web)
 
 ## Installation
 

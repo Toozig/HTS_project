@@ -1,6 +1,6 @@
 import sys
 import argparse
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from pandas import DataFrame
 from utils.HTS_data_processing import process_HTS_raw_files, impute_missing_cycles
 from utils.HTS_model import train_hts_model
@@ -131,7 +131,6 @@ def run_prediction(output_file: str, rnacompete_file: str, selex_files: List[str
 
 def main():
     args = parse_arguments()
-
     output_file = args.output_file
     rnacompete_file = args.rnacompete_file
     selex_files = args.selex_files
