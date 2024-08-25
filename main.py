@@ -80,11 +80,12 @@ def get_HTS_RNAC_probe_prediction(protein_name: str,rnac_df: DataFrame, model:Mo
 
 
 
-def prepare_hts_data(selex_files: List[str]) -> Tuple[DataFrame, bool]:
+def prepare_hts_data(protein_name:str, selex_files: List[str]) -> Tuple[DataFrame, bool]:
     """
     Prepares the HT-SELEX data for training.
 
     Args:
+        protein_name (str): The name of the protein.
         selex_files (List[str]): List of paths to the SELEX files.
 
     Returns:
@@ -97,7 +98,7 @@ def prepare_hts_data(selex_files: List[str]) -> Tuple[DataFrame, bool]:
     need_imputation = len(selex_files) == 1
     if need_imputation:
         print("Imputing missing cycles...")
-        hts_df = impute_missing_cycles(hts_df)
+        hts_df = impute_missing_cycles(protein_name,hts_df)
 
     return hts_df, need_imputation
 
@@ -115,7 +116,7 @@ def run_prediction(output_file: str, rnacompete_file: str, selex_files: List[str
 
 
     # Step 2: Process the SELEX files into the model input format
-    hts_df, is_imputed = prepare_hts_data(selex_files)
+    hts_df, is_imputed = prepare_hts_data(protein_name, selex_files)
 
     # Step 3: train the model
     model, history, test_loss = train_hts_model(hts_df, is_imputed)
