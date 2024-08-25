@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import pearsonr
 
-def calculate_pearson_correlation(file1_path:str, file2_path:str)-> None:
+def calculate_pearson_correlation(file1_path:str, file2_path:str)-> float:
     """
     Calculate the Pearson correlation between two files containing numbers.
 
@@ -10,7 +10,8 @@ def calculate_pearson_correlation(file1_path:str, file2_path:str)-> None:
         file2_path (str): Path to the second file.  
 
     Returns:
-        None
+        float: The Pearson correlation between the two files.
+        
     """
     # Read numbers from the first file
     with open(file1_path, 'r') as file1:
@@ -30,3 +31,4 @@ def calculate_pearson_correlation(file1_path:str, file2_path:str)-> None:
     
     # Print the Pearson correlation
     print(f"Pearson correlation: {correlation}")
+    return correlation
