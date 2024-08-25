@@ -5,7 +5,7 @@ from pandas import DataFrame
 from utils.HTS_data_processing import process_HTS_raw_files, impute_missing_cycles
 from utils.HTS_model import train_hts_model
 from utils.HTS_to_RNAC import  get_hts_onehot
-from utils.RNAC_models import get_full_HTS_to_RNAC_prediction, get_HTS_to_RNAC_prediction
+from utils.RNAC_models import get_HTS_to_RNAC_prediction
 import numpy as np
 from tensorflow.keras.models import Model
 import pandas as pd
@@ -123,7 +123,6 @@ def run_prediction(output_file: str, rnacompete_file: str, selex_files: List[str
     RNAC_df = get_rnac_data(rnacompete_file)
     HTS_X = get_HTS_RNAC_probe_prediction(protein_name, RNAC_df,  model, test_loss)
     print(f"Saved the prediction for {protein_name}")
-    # RNAC_pred = get_full_HTS_to_RNAC_prediction(HTS_X) # probelm to load the last  model
     RNAC_pred = get_HTS_to_RNAC_prediction(HTS_X)
     write_scores(output_file, RNAC_pred)
     print(f'done prediction on {protein_name}') 
