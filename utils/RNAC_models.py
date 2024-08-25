@@ -8,7 +8,6 @@ import joblib
 import tensorflow as tf
 from xgboost import XGBRegressor
 import joblib
-import tensorflow as tf
 import keras
 import pickle
 import os
@@ -17,6 +16,10 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+import pandas as pd
+
+HTS_TO_RNAC_COLS = ['small_model', 'xgboost_model', 'big_model']
+
 
 COL_ORDER =['test_score', 'RBP1', 'RBP2', 'RBP3', 'RBP4', 'RBP5', 'RBP6', 'RBP7', 'RBP8', 'RBP9', 'RBP10', 'RBP11', 'RBP12', 'RBP13', 'RBP14', 'RBP15', 'RBP16', 'RBP17', 'RBP18', 'RBP19', 'RBP20', 'RBP21', 'RBP22', 'RBP23', 'RBP24', 'RBP25', 'RBP26', 'RBP27', 'RBP28', 'RBP29', 'RBP30', 'RBP31', 'RBP32', 'RBP33', 'RBP34', 'RBP35', 'RBP36', 'RBP37', 'RBP38']
 
@@ -310,9 +313,6 @@ def scale_samples(samples):
     return samples_scaled
 
 
-
-HTS_TO_RNAC_COLS = ['small_model', 'xgboost_model', 'big_model']
-import pandas as pd
 
 def save_RNAC_preds(prediction: np.ndarray, protein_idx:int):
     saving_dir = 'data/final/RNAC_3_model_predictions'
