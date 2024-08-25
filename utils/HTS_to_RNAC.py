@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from keras.models import Model
 from utils.HTS_data_processing import oneHot_encode, SEQ_LEN
 # path to predictions of RBP1-38 on the RNAC dataset
 
@@ -14,7 +15,14 @@ RNAC_DF_PARQUET_WEB_PATH = 'https://raw.githubusercontent.com/Toozig/HTS_to_RNAC
 
 
 
-def load_RNAC_df():
+def load_RNAC_df()-> pd.DataFrame:
+    """
+    This function loads the RNAC dataset from a parquet file
+    Returns:
+    pd.DataFrame: The RNAC dataset
+
+
+    """
     parquet_path = RNAC_PARQUET_FILE
     if not os.path.exists(parquet_path):
         print('Downloading RNAC data')
@@ -36,14 +44,23 @@ def get_rnac_data(RNAC_sequence_file: str) -> pd.DataFrame:
     rnac_df.index = RNAC_sequences
     return rnac_df
   
-def get_hts_onehot(RNAC_sequences):
+def get_hts_onehot(RNAC_sequences: str) -> np.ndarray:
+    """
+    This function takes a list of RNA sequences and returns the one-hot encoded sequences
+
+    Parameters:
+    RNAC_sequences (str): A list of RNA sequences
+
+    Returns:
+    np.ndarray: The one-hot encoded sequences
+
+    """
     RNAC_sequences = [seq.ljust(SEQ_LEN,'N')for seq in RNAC_sequences]
     hts_result = [oneHot_encode(seq) for seq in RNAC_sequences]
     hts_result = np.array(hts_result)
     return hts_result
 
-
-def get_X(rnac_df, model,test_score):
+def get_X(rnac_df:pd.DataFrame, model: Model,test_score: float)-> np.ndarray:
     hts_result = get_hts_onehot(rnac_df.index.values)
     cur_pred = model.predict(hts_result)
     cur_X = cur_pred * rnac_df
@@ -51,44 +68,3 @@ def get_X(rnac_df, model,test_score):
     cur_X = cur_X.values
     cur_X = np.concatenate((np.full((cur_X.shape[0], 1), test_score, cur_X)), axis=1)
     return cur_X
-
-
-# not sure if can delete
-
-# @register_keras_serializable()
-# class SaveFirstNumber(Layer):
-#     def __init__(self, **kwargs):
-#         super(SaveFirstNumber, self).__init__(**kwargs)
-#         self.saved_number = None
-
-#     def call(self, inputs):
-#         self.saved_number = inputs[:, 0:1]
-#         return inputs
-
-#     def get_config(self):
-#         config = super(SaveFirstNumber, self).get_config()
-#         return config
-
-# import keras
-
-# class MultiplyBySavedNumber(Layer):
-#     def __init__(self, saved_number_layer, **kwargs):
-#         super(MultiplyBySavedNumber, self).__init__(**kwargs)
-#         self.saved_number_layer = saved_number_layer
-
-#     def call(self, inputs):
-#         return inputs * self.saved_number_layer.saved_number
-
-#     def get_config(self):
-#         config = super(MultiplyBySavedNumber, self).get_config()
-#         config.update({
-#             'saved_number_layer': self.saved_number_layer.name  # Save the name of the layer
-#         })
-#         return config
-
-#     @classmethod
-#     def from_config(cls, config):
-#         # Retrieve the layer by name from the model's layers
-#         saved_number_layer = keras.layers.deserialize(config.pop('saved_number_layer'))
-#         return cls(saved_number_layer, **config)
-
