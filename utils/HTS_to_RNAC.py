@@ -20,6 +20,8 @@ def load_RNAC_df():
         print('Downloading RNAC data')
         parquet_path = '/tmp/probe_intenseteis.parquet'
         if not os.path.exists(parquet_path):
+            # create the directory if it does not exist
+            os.makedirs('/tmp', exist_ok=True)
             os.system(f'wget -O {parquet_path} {RNAC_DF_PARQUET_WEB_PATH}')
     rnac_df = pd.read_parquet(parquet_path, engine='pyarrow')    
     return rnac_df

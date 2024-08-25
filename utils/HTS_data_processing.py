@@ -92,6 +92,8 @@ def download_and_load_rbp(protein_name):
     local_path = f"/tmp/RBP{protein_name}.csv"
     if os.path.exists(local_path):
         return pd.read_csv(local_path)
+    # create the directory if it does not exist
+    os.makedirs('/tmp', exist_ok=True)
     try:
         # Download the file
         response = requests.get(url)
